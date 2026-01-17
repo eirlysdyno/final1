@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/index.js": {
+    "api/chatbot.js": {
       "runtime": "nodejs18.x",
       "maxDuration": 10
     }
