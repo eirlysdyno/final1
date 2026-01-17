@@ -1,47 +1,39 @@
-import dotenv from "dotenv"
 import fs from "fs"
 import path from "path"
-import { fileURLToPath } from "url"
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
-dotenv.config()
+let knowledge = []
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-
-const knowledgePath = path.join(__dirname, "data", "knowledge.json")
-const knowledge = fs.existsSync(knowledgePath)
-  ? JSON.parse(fs.readFileSync(knowledgePath, "utf-8"))
-  : []
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+// Load knowledge an toàn cho serverless
+try {
+  const knowledgePath = path.join(process.cwd(), "data", "knowledge.json")
+  if (fs.existsSync(knowledgePath)) {
+    knowledge = JSON.parse(fs.readFileSync(knowledgePath, "utf-8"))
+  }
+} catch (err) {
+  console.error("❌ Failed to load knowledge.json:", err)
+}
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*")
-  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type")
-  
-  if (req.method === "OPTIONS") {
-    return res.status(200).end()
-  }
-
-  if (!req.body) {
-  req.body = JSON.parse(await new Promise((resolve) => {
-    let body = ""
-    req.on("data", chunk => body += chunk)
-    req.on("end", () => resolve(body))
-  }))
-}
   if (req.method !== "POST") {
     return res.status(405).json({ reply: "Method not allowed" })
   }
 
   try {
-    const { message } = req.body
+    const { message } = req.body || {}
 
     if (!message) {
       return res.status(400).json({ reply: "Câu hỏi trống" })
     }
+
+    if (!process.env.GEMINI_API_KEY) {
+      console.error("❌ Missing GEMINI_API_KEY")
+      return res.status(500).json({
+        reply: "Hệ thống chưa cấu hình API key"
+      })
+    }
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
 
     const context = knowledge.length
       ? knowledge.map(k => k.content).join("\n")
@@ -65,7 +57,7 @@ Câu hỏi: ${message}`
     })
 
   } catch (err) {
-    console.error(err)
+    console.error("❌ Chatbot error:", err)
 
     if (err.message?.includes("429")) {
       return res.json({
