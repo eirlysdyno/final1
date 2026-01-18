@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import knowledge from "./api/data/knowledge.js"
+import knowledge from "./data/knowledge.js"
 
 export const config = {
   runtime: "nodejs"
