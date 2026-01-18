@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename)
 // Load knowledge
 let knowledge = []
 try {
-  const knowledgePath = path.resolve(__dirname, "knowledge.json")
+  const knowledgePath = path.resolve(__dirname, "data", "knowledge.json")
   knowledge = JSON.parse(fs.readFileSync(knowledgePath, "utf-8"))
   console.log("✅ Knowledge loaded:", knowledge.length)
 } catch (err) {
