@@ -1,8 +1,19 @@
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
 import { GoogleGenerativeAI } from "@google/generative-ai"
-import knowledge from "./data/knowledge.js"
 
-export const config = {
-  runtime: "nodejs"
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+// Load knowledge
+let knowledge = []
+try {
+  const knowledgePath = path.resolve(__dirname, "knowledge.json")
+  knowledge = JSON.parse(fs.readFileSync(knowledgePath, "utf-8"))
+  console.log("✅ Knowledge loaded:", knowledge.length)
+} catch (err) {
+  console.error("❌ Load knowledge failed:", err.message)
 }
 
 export default async function handler(req, res) {
@@ -17,30 +28,34 @@ export default async function handler(req, res) {
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ reply: "Thiếu API key" })
+      throw new Error("Missing GEMINI_API_KEY")
     }
 
+    console.log("🤖 Calling Gemini AI...")
+
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-
-    const context = knowledge.map(k => k.content).join("\n")
-
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash"
     })
 
-    const result = await model.generateContent(`
+    const prompt = `
 Bạn là chatbot ngân hàng MBV.
-Dựa trên dữ liệu sau để trả lời:
-
-${context}
+Dữ liệu:
+${knowledge.map(k => k.content).join("\n")}
 
 Câu hỏi: ${message}
-`)
+`
 
-    return res.json({ reply: result.response.text() })
+    const result = await model.generateContent(prompt)
+
+    console.log("✅ Gemini responded")
+
+    return res.json({
+      reply: result.response.text()
+    })
 
   } catch (err) {
-    console.error("❌ Chatbot error:", err)
+    console.error("❌ Chatbot error:", err.message)
     return res.status(500).json({
       reply: "Hệ thống chatbot tạm thời gặp sự cố."
     })
