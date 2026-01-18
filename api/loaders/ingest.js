@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const RAW_DIR = path.join(__dirname, "../raw_files");
-const OUTPUT_FILE = path.join(__dirname, "../data/knowledge.json");
+const OUTPUT_FILE = path.join(__dirname, "../knowledge.json");
 
 async function ingest() {
   const files = fs.readdirSync(RAW_DIR);
@@ -64,7 +64,7 @@ async function ingest() {
     "utf8"
   );
 
-  console.log(`🎉 HOÀN TẤT – Đã tạo data/knowledge.json`);
+  console.log(`🎉 HOÀN TẤT – Đã tạo knowledge.json`);
 }
 
 ingest();
