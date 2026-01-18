@@ -2,6 +2,7 @@ import fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+console.log("🔥 CHATBOT VERSION 2026-01-18 v3")
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
